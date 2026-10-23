@@ -163,12 +163,61 @@ pub fn normalize(input: &str) -> String {
     let mut out = String::with_capacity(lowered.len());
     for ch in lowered.chars() {
         match ch {
-            // Combining diacritical marks block: drop them.
+            // Combining diacritical marks: drop them. Covers text that arrived
+            // pre-decomposed (NFD), e.g. "e" + U+0301.
             '\u{0300}'..='\u{036F}' => continue,
-            _ => out.push(ch),
+            _ => match fold_latin(ch) {
+                Some(base) => out.push(base),
+                None => out.push(ch),
+            },
         }
     }
     out.trim().to_string()
+}
+
+/// Fold precomposed Latin letters to their ASCII base.
+///
+/// Rust's stdlib has no Unicode normalisation and `to_lowercase()` does not
+/// decompose "É" (U+00C9) into "E" + U+0301, so without this the result was
+/// `"café"` while the TypeScript mirror returned `"cafe"` — the two engines
+/// then ranked differently, which breaks the whole point of having a mirror.
+///
+/// Every entry below was generated from Unicode NFD data and verified to
+/// decompose to `<ascii base> + combining marks`. Letters that do NOT decompose
+/// that way in JS either (`ø`, `ł`, `đ`, `ħ`, `ŧ`, `ı`, `ŋ`, `ß`) are
+/// deliberately absent, otherwise Rust would fold what TS leaves intact.
+///
+/// Do NOT rewrite this as char RANGES: `'ñ'..='ň'` spans U+00F1–U+0148 and
+/// silently swallows ö/ü/ý in between ("Zürich" became "znrich").
+fn fold_latin(ch: char) -> Option<char> {
+    Some(match ch {
+        'à' | 'á' | 'â' | 'ã' | 'ä' | 'å' | 'ā' | 'ă' | 'ą' | 'ǎ' | 'ǟ' | 'ǡ' | 'ǻ' | 'ȁ' | 'ȃ' | 'ȧ' | 'ḁ' | 'ạ' | 'ả' | 'ấ' | 'ầ' | 'ẩ' | 'ẫ' | 'ậ' | 'ắ' | 'ằ' | 'ẳ' | 'ẵ' | 'ặ' => 'a',
+        'ḃ' | 'ḅ' | 'ḇ' => 'b',
+        'ç' | 'ć' | 'ĉ' | 'ċ' | 'č' | 'ḉ' => 'c',
+        'ď' | 'ḋ' | 'ḍ' | 'ḏ' | 'ḑ' | 'ḓ' => 'd',
+        'è' | 'é' | 'ê' | 'ë' | 'ē' | 'ĕ' | 'ė' | 'ę' | 'ě' | 'ȅ' | 'ȇ' | 'ȩ' | 'ḕ' | 'ḗ' | 'ḙ' | 'ḛ' | 'ḝ' | 'ẹ' | 'ẻ' | 'ẽ' | 'ế' | 'ề' | 'ể' | 'ễ' | 'ệ' => 'e',
+        'ḟ' => 'f',
+        'ĝ' | 'ğ' | 'ġ' | 'ģ' | 'ǧ' | 'ǵ' | 'ḡ' => 'g',
+        'ĥ' | 'ȟ' | 'ḣ' | 'ḥ' | 'ḧ' | 'ḩ' | 'ḫ' | 'ẖ' => 'h',
+        'ì' | 'í' | 'î' | 'ï' | 'ĩ' | 'ī' | 'ĭ' | 'į' | 'ǐ' | 'ȉ' | 'ȋ' | 'ḭ' | 'ḯ' | 'ỉ' | 'ị' => 'i',
+        'ĵ' | 'ǰ' => 'j',
+        'ķ' | 'ǩ' | 'ḱ' | 'ḳ' | 'ḵ' => 'k',
+        'ĺ' | 'ļ' | 'ľ' | 'ḷ' | 'ḹ' | 'ḻ' | 'ḽ' => 'l',
+        'ḿ' | 'ṁ' | 'ṃ' => 'm',
+        'ñ' | 'ń' | 'ņ' | 'ň' | 'ǹ' | 'ṅ' | 'ṇ' | 'ṉ' | 'ṋ' => 'n',
+        'ò' | 'ó' | 'ô' | 'õ' | 'ö' | 'ō' | 'ŏ' | 'ő' | 'ơ' | 'ǒ' | 'ǫ' | 'ǭ' | 'ȍ' | 'ȏ' | 'ȫ' | 'ȭ' | 'ȯ' | 'ȱ' | 'ṍ' | 'ṏ' | 'ṑ' | 'ṓ' | 'ọ' | 'ỏ' | 'ố' | 'ồ' | 'ổ' | 'ỗ' | 'ộ' | 'ớ' | 'ờ' | 'ở' | 'ỡ' | 'ợ' => 'o',
+        'ṕ' | 'ṗ' => 'p',
+        'ŕ' | 'ŗ' | 'ř' | 'ȑ' | 'ȓ' | 'ṙ' | 'ṛ' | 'ṝ' | 'ṟ' => 'r',
+        'ś' | 'ŝ' | 'ş' | 'š' | 'ș' | 'ṡ' | 'ṣ' | 'ṥ' | 'ṧ' | 'ṩ' => 's',
+        'ţ' | 'ť' | 'ț' | 'ṫ' | 'ṭ' | 'ṯ' | 'ṱ' | 'ẗ' => 't',
+        'ù' | 'ú' | 'û' | 'ü' | 'ũ' | 'ū' | 'ŭ' | 'ů' | 'ű' | 'ų' | 'ư' | 'ǔ' | 'ǖ' | 'ǘ' | 'ǚ' | 'ǜ' | 'ȕ' | 'ȗ' | 'ṳ' | 'ṵ' | 'ṷ' | 'ṹ' | 'ṻ' | 'ụ' | 'ủ' | 'ứ' | 'ừ' | 'ử' | 'ữ' | 'ự' => 'u',
+        'ṽ' | 'ṿ' => 'v',
+        'ŵ' | 'ẁ' | 'ẃ' | 'ẅ' | 'ẇ' | 'ẉ' | 'ẘ' => 'w',
+        'ẋ' | 'ẍ' => 'x',
+        'ý' | 'ÿ' | 'ŷ' | 'ȳ' | 'ẏ' | 'ẙ' | 'ỳ' | 'ỵ' | 'ỷ' | 'ỹ' => 'y',
+        'ź' | 'ż' | 'ž' | 'ẑ' | 'ẓ' | 'ẕ' => 'z',
+        _ => return None,
+    })
 }
 
 /// Subsequence fuzzy match with gap penalty. Returns a 0.0..=1.0 quality
@@ -576,6 +625,40 @@ mod tests {
     fn normalize_strips_case_and_accents() {
         assert_eq!(normalize("  CAFÉ  "), "cafe");
         assert_eq!(normalize("Mini-Shopify"), "mini-shopify");
+    }
+
+    /// The TS mirror uses `.normalize('NFD')` then strips combining marks, which
+    /// also folds PRECOMPOSED letters. Rust's stdlib cannot do that, so
+    /// `fold_latin` must stay in sync. This guards the contract that makes WASM
+    /// and TS return the same ranking.
+    ///
+    /// `Zürich` and `Malmö` are here on purpose: an earlier version used char
+    /// RANGES (`'ñ'..='ň'` covers U+00F1–U+0148), which swallowed `ö`/`ü`/`ý`
+    /// and produced "znrich". Keep these assertions.
+    #[test]
+    fn normalize_matches_typescript_contract() {
+        assert_eq!(normalize("CAFÉ"), "cafe");
+        assert_eq!(normalize("naïve"), "naive");
+        assert_eq!(normalize("Zürich"), "zurich");
+        assert_eq!(normalize("Malmö"), "malmo");
+        assert_eq!(normalize("Löwe"), "lowe");
+        assert_eq!(normalize("Ångström"), "angstrom");
+        assert_eq!(normalize("Señor"), "senor");
+        assert_eq!(normalize("Dvořák"), "dvorak");
+        assert_eq!(normalize("Reykjavík"), "reykjavik");
+        assert_eq!(normalize("Besançon"), "besancon");
+        assert_eq!(normalize("Crème Brûlée"), "creme brulee");
+
+        // Letters JS's NFD does NOT decompose must survive intact, exactly as
+        // they do in TypeScript. Folding these would desync the two engines.
+        assert_eq!(normalize("Łódź"), "łodz");
+        assert_eq!(normalize("Größe"), "größe");
+        assert_eq!(normalize("Đán"), "đan");
+
+        // Already-decomposed input keeps working (NFD combining marks).
+        assert_eq!(normalize("cafe\u{0301}"), "cafe");
+        // Non-Latin text passes through untouched.
+        assert_eq!(normalize("ワルン"), "ワルン");
     }
 
     #[test]
