@@ -651,8 +651,10 @@ mod tests {
 
         // Letters JS's NFD does NOT decompose must survive intact, exactly as
         // they do in TypeScript. Folding these would desync the two engines.
+        // NB: `ö` is NOT one of them — NFD decomposes it to o + U+0308, so
+        // "Größe" correctly becomes "große" (only the ß survives).
         assert_eq!(normalize("Łódź"), "łodz");
-        assert_eq!(normalize("Größe"), "größe");
+        assert_eq!(normalize("Größe"), "große");
         assert_eq!(normalize("Đán"), "đan");
 
         // Already-decomposed input keeps working (NFD combining marks).
