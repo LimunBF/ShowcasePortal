@@ -104,10 +104,6 @@ Kalau `npm run dev` menampilkan `404 /src/wasm-pkg/portal_wasm.js` di log, itu
 │   │   └── 404.astro
 │   └── styles/global.css        # Design tokens
 ├── public/.htaccess             # MIME wasm, cache, HTTPS redirect
-├── docs/
-│   ├── PRD.md
-│   ├── TRD.md
-│   └── EDITING-PROJECTS.md      # 📖 cara tambah/ubah proyek
 └── .github/workflows/build-deploy.yml
 ```
 
@@ -119,7 +115,7 @@ Semua data ada di **`src/data/projects.json`**. Tambah satu object ke array, sel
 
 Panduan lengkap (arti tiap field, jebakan JSON, di file mana harus edit apa):
 
-**→ [`docs/EDITING-PROJECTS.md`](docs/EDITING-PROJECTS.md)**
+**→ [`src/data/README.md`](src/data/README.md)**
 
 Verifikasi cepat:
 
@@ -162,11 +158,11 @@ Auto-deploy via FTPS opsional — set secrets `CPANEL_FTP_SERVER`, `CPANEL_FTP_U
 
 | File | Isi |
 | :--- | :--- |
-| [`docs/PRD.md`](docs/PRD.md) | Product requirements, target audiens |
-| [`docs/TRD.md`](docs/TRD.md) | Arsitektur, ADR, spesifikasi hosting |
-| [`docs/EDITING-PROJECTS.md`](docs/EDITING-PROJECTS.md) | Panduan edit data proyek |
+| [`src/data/README.md`](src/data/README.md) | Panduan edit data proyek |
 | [`DESIGN.md`](DESIGN.md) | Design system |
-| [`AGENTS.md`](AGENTS.md) | Aturan untuk AI coding agent |
+
+> Spesifikasi produk (PRD), technical requirements (TRD), dan aturan internal AI agent
+> disimpan di **repo privat terpisah** dan tidak dipublikasikan di sini.
 
 ---
 

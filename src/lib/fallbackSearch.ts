@@ -3,7 +3,7 @@
  *
  * This is the *reference implementation* of the scoring contract that
  * `crates/portal-wasm/src/lib.rs` mirrors. It exists so the portal runs on
- * machines without a Rust toolchain (see AGENTS.md §2 — "Zero-Local-Rust").
+ * machines without a Rust toolchain (rule: "Zero-Local-Rust").
  *
  * Keep the two in sync: same weights, same tie-breaking, same sort order.
  */

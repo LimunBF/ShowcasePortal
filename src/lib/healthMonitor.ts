@@ -1,7 +1,7 @@
 /**
  * Lightweight subdomain health monitor.
  *
- * Runs entirely in the browser — no server, no daemon (see docs/TRD.md ADR-002).
+ * Runs entirely in the browser — no server, no daemon (ADR-002).
  * For every project we attempt ONE real network probe and derive a latency.
  *
  * ## Why `mode: 'no-cors'`

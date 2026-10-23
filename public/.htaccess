@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # DevArcade — cPanel (Apache / LiteSpeed) configuration
 # Deployed copy of this file lands in public_html/.htaccess via `dist/`.
-# See docs/TRD.md §4. Server runs NO build step: only static files.
+# See ADR-002/ADR-003. Server runs NO build step: only static files.
 # ---------------------------------------------------------------------------
 
 # --- MIME types -------------------------------------------------------------

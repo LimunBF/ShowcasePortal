@@ -5,7 +5,7 @@
 //!
 //! ## Why Rust here?
 //! The portal ships as pure static files on shared cPanel hosting (see
-//! `docs/TRD.md`, ADR-002/ADR-003). All the ranking work therefore happens in
+//! ADR-002/ADR-003). All the ranking work therefore happens in
 //! the visitor's browser. Doing it in Rust keeps the algorithm fast, explicit
 //! and free of the fuzzy-search library churn that plagues JS bundles — the
 //! compiled artefact is a few dozen kilobytes.

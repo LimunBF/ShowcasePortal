@@ -3,7 +3,7 @@
  *
  * Tries to load the Rust/WASM engine built by CI (`src/wasm-pkg/portal_wasm.js`).
  * If the artifact is absent (the normal state on a Windows dev box with no Rust
- * toolchain — AGENTS.md §1), it silently falls back to the pure-TypeScript
+ * toolchain — see README), it silently falls back to the pure-TypeScript
  * implementation. Callers never see an error and never branch on the result.
  */
 import { searchProjects as tsSearch, normalize } from './fallbackSearch';

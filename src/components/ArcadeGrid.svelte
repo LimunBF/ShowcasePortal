@@ -1,7 +1,7 @@
 <!--
   ArcadeGrid — the only heavily interactive island on the page.
 
-  Svelte 5 Runes only (AGENTS.md §3.1):
+  Svelte 5 Runes only:
     $props   — projects passed from the Astro page (serialized JSON)
     $state   — query, active filter, modal target, live health map
     $derived — filtered rows, live counters
