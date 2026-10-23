@@ -1,0 +1,120 @@
+name: Build & Deploy (WASM + Static)
+
+# Rust compilation NEVER happens on the user's machine (rule:
+# "Zero-Local-Rust"). GitHub's runners install the toolchain, compile the
+# crate, and hand Astro a ready `src/wasm-pkg` before `npm run build`.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  NODE_VERSION: '20'
+
+jobs:
+  build:
+    name: Compile WASM & build static site
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Setup Rust toolchain (wasm32 target)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo registry & target dir
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/portal-wasm -> target
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: latest
+
+      # Native tests first: they catch scoring regressions without needing the
+      # wasm target, and they're fast (~seconds with a warm cache).
+      - name: Run Rust unit tests
+        working-directory: crates/portal-wasm
+        run: cargo test --lib
+
+      # Builds the crate into src/wasm-pkg so `searchEngine.ts` finds the module
+      # at build time. --target web emits an ES module + .wasm binary.
+      - name: Build Rust → WASM
+        working-directory: crates/portal-wasm
+        run: wasm-pack build --target web --release --out-dir ../../src/wasm-pkg --out-name portal_wasm
+
+      - name: Show WASM artifact size
+        run: |
+          ls -lh src/wasm-pkg/
+          du -sh src/wasm-pkg/
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Type & template check
+        run: npm run check
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Verify WASM landed in dist
+        run: |
+          test -f dist/_astro/*.wasm || test -f dist/*.wasm || (echo "WASM missing from dist!" && exit 1)
+          ls -lh dist/ | head -20
+
+      - name: Upload static artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: devarcade-dist
+          path: dist/
+          retention-days: 14
+          if-no-files-found: error
+
+  # Optional: auto-publish to cPanel over FTPS on pushes to main.
+  # Requires repo secrets: CPANEL_FTP_SERVER, CPANEL_FTP_USERNAME,
+  # CPANEL_FTP_PASSWORD (and the target dir inside public_html).
+  # The server never builds anything — it only receives dist/.
+  deploy:
+    name: Deploy to cPanel (static only)
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: devarcade-dist
+          path: dist
+
+      - name: Publish via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_SERVER }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: dist/
+          server-dir: public_html/
+          dangerous-clean-slate: false
