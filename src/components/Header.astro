@@ -1,0 +1,113 @@
+---
+// Static brand bar. Zero hydration: the search field dispatches a
+// `devarcade:query` CustomEvent that the ArcadeGrid island listens for.
+// This keeps the top of the page instant while the interactive parts stay
+// confined to the Svelte islands (Astro Islands Architecture).
+const nav = [
+  { label: 'Arcade', href: '#arcade' },
+];
+---
+
+<header class="sticky top-0 z-40 border-b border-hairline bg-void/85 backdrop-blur-md">
+  <div class="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:gap-6">
+    <!-- Brand -->
+    <a href="/" class="group flex shrink-0 items-center gap-2.5" aria-label="DevArcade — beranda">
+      <span
+        class="grid size-8 place-items-center rounded border border-hairline bg-slate-obsidian transition-colors group-hover:border-astro"
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 24 24" fill="none" class="size-4 text-astro" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 11h4M8 9v4M15 12h.01M18 10h.01" />
+          <path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.6l-.68 8A4 4 0 0 0 6 21h12a4 4 0 0 0 3.98-4.4l-.68-8A4 4 0 0 0 17.32 5Z" />
+        </svg>
+      </span>
+      <span class="flex flex-col leading-none">
+        <span class="font-display text-base font-bold tracking-[-0.03em] text-crisp">DevArcade</span>
+        <span class="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">showcase hub</span>
+      </span>
+    </a>
+
+    <!-- Search (dispatches events; state lives in the Svelte island) -->
+    <div class="relative flex-1 lg:max-w-md">
+      <label for="global-search" class="sr-only">Cari proyek</label>
+      <svg
+        class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
+      <input
+        id="global-search"
+        type="search"
+        name="q"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Cari proyek, tech stack, atau kategori…"
+        class="w-full rounded border border-hairline bg-slate-obsidian py-2 pl-9 pr-16 font-mono text-sm text-crisp placeholder:text-muted/70 transition-colors hover:border-hairline focus:border-cyber focus:outline-none focus:ring-1 focus:ring-cyber/40 [&::-webkit-search-cancel-button]:hidden"
+        aria-describedby="search-hint"
+      />
+      <kbd class="kbd pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" data-kbd-hint>
+        <span class="hidden sm:inline">Ctrl</span><span class="sm:hidden">⌘</span> K
+      </kbd>
+      <span id="search-hint" class="sr-only">Tekan Control atau Command ditambah K untuk fokus ke kolom pencarian.</span>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex items-center gap-1 lg:ml-auto" aria-label="Navigasi utama">
+      {
+        nav.map((item) => (
+          <a
+            href={item.href}
+            class="rounded px-2.5 py-1.5 font-mono text-xs text-muted transition-colors hover:bg-slate-elevated hover:text-crisp"
+          >
+            {item.label}
+          </a>
+        ))
+      }
+      <a
+        href="https://github.com/LimunBF/ShowcasePortal"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="ml-1 inline-flex items-center gap-1.5 rounded border border-hairline bg-slate-obsidian px-2.5 py-1.5 font-mono text-xs text-crisp transition-colors hover:border-astro hover:text-astro"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" class="size-3.5" aria-hidden="true">
+          <path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z" />
+        </svg>
+        Source
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const input = document.getElementById('global-search') as HTMLInputElement | null;
+  const hint = document.querySelector('[data-kbd-hint]');
+
+  if (input) {
+    const emit = (value: string) => {
+      window.dispatchEvent(new CustomEvent('devarcade:query', { detail: { text: value } }));
+    };
+
+    input.addEventListener('input', () => emit(input.value));
+
+    // Cmd/Ctrl + K focuses the search bar from anywhere on the page.
+    window.addEventListener('keydown', (event) => {
+      const isK = event.key.toLowerCase() === 'k';
+      if (isK && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        input.focus();
+        input.select();
+      }
+    });
+
+    // Reflect the platform modifier in the hint chip.
+    const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
+    if (hint) hint.textContent = isMac ? '⌘ K' : 'Ctrl K';
+  }
+</script>

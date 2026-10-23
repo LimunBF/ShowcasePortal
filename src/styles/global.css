@@ -1,0 +1,156 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Cyber-Arcade Brutalism — design tokens (DESIGN.md §2)
+   Tailwind v4 exposes these as utilities: bg-void, border-hairline, text-muted…
+--------------------------------------------------------------------------- */
+@theme {
+  --color-void: #090a0f;
+  --color-slate-obsidian: #12141d;
+  --color-slate-elevated: #1a1d2b;
+  --color-hairline: #232738;
+  --color-astro: #ff5d01;
+  --color-cyber: #00f0ff;
+  --color-crisp: #f3f4f6;
+  --color-muted: #9ca3af;
+  --color-online: #10b981;
+  --color-amber-warn: #f59e0b;
+  --color-crimson: #ef4444;
+
+  --font-display: 'Space Grotesk', 'JetBrains Mono', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  --animate-pulse-dot: pulse-dot 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-rise: rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-scan: scan 7s linear infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 0 4px color-mix(in oklab, currentColor 22%, transparent);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scan {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    background-color: var(--color-void);
+    color: var(--color-crisp);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Brutalist backdrop: hairline grid + two soft neon blooms. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.028) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.028) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-astro) 55%, transparent);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-cyber);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Thin, brutalist scrollbar. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-hairline) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-hairline);
+    border-radius: 999px;
+  }
+}
+
+@layer components {
+  /* A hairline card surface shared by tiles, the modal and the palette. */
+  .brutal-panel {
+    background-color: var(--color-slate-obsidian);
+    border: 1px solid var(--color-hairline);
+  }
+
+  .kbd {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    padding: 0.25rem 0.375rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--color-hairline);
+    background-color: var(--color-slate-elevated);
+    color: var(--color-muted);
+  }
+
+  .tech-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: -0.01em;
+    padding: 0.1875rem 0.4375rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--color-hairline);
+    color: var(--color-muted);
+    background-color: color-mix(in oklab, var(--color-slate-elevated) 70%, transparent);
+    white-space: nowrap;
+  }
+}
+
+/* Respect the user's motion preference — arcade flair must never nauseate. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

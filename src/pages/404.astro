@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="404 — Sektor tidak ditemukan | DevArcade" description="Halaman yang kamu cari tidak ada di arcade ini.">
+  <section class="mx-auto flex w-full max-w-3xl flex-col items-start justify-center px-4 py-24 sm:px-6">
+    <p class="font-mono text-[11px] uppercase tracking-[0.24em] text-crimson">error 404</p>
+    <h1 class="mt-3 font-display text-4xl font-bold tracking-[-0.03em] text-crisp sm:text-5xl">
+      Sektor ini kosong.
+    </h1>
+    <p class="mt-3 max-w-md text-sm leading-relaxed text-muted">
+      Kartu yang kamu tuju tidak ada — mungkin proyeknya sudah dipindah ke subdomain lain, atau
+      URL-nya salah ketik.
+    </p>
+    <a
+      href="/"
+      class="mt-6 inline-flex items-center gap-2 rounded border border-astro bg-astro/10 px-4 py-2 font-mono text-xs text-astro transition-colors hover:bg-astro/20"
+    >
+      ← Kembali ke arcade
+    </a>
+  </section>
+</Layout>

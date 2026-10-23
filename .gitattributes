@@ -1,0 +1,14 @@
+# Normalize line endings: LF in the repo, so the same bytes work on Linux CI
+# and on Windows. Without this, Git warns on every file and diffs get noisy.
+* text=auto eol=lf
+
+# Keep shell-ish files LF-only even on Windows checkouts.
+*.sh   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Binary — never touch.
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.wasm binary

@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ArcadeGrid from '../components/ArcadeGrid.svelte';
+import projectsData from '../data/projects.json';
+import type { Project } from '../lib/types';
+
+// JSON imports are inferred as plain objects; assert once at the boundary so
+// every downstream island gets a real `Project[]` instead of `any`.
+const projects = projectsData as Project[];
+
+// Filter pills: the most common stacks across the catalogue, stable order.
+const stackCounts = new Map<string, number>();
+for (const project of projects) {
+  for (const stack of project.stack) {
+    stackCounts.set(stack, (stackCounts.get(stack) ?? 0) + 1);
+  }
+}
+const stacks = [...stackCounts.entries()]
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  .slice(0, 7)
+  .map(([name]) => name);
+---
+
+<Layout>
+  {/*
+    Header + search/filter + bento grid. Nothing else: no "how it works"
+    explainer, no static telemetry strip. The arcade IS the content.
+  */}
+  <ArcadeGrid {projects} {stacks} client:load />
+</Layout>

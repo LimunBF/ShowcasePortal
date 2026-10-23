@@ -1,0 +1,89 @@
+# ---------------------------------------------------------------------------
+# DevArcade — cPanel (Apache / LiteSpeed) configuration
+# Deployed copy of this file lands in public_html/.htaccess via `dist/`.
+# See docs/TRD.md §4. Server runs NO build step: only static files.
+# ---------------------------------------------------------------------------
+
+# --- MIME types -------------------------------------------------------------
+# wasm-pack output must be served as application/wasm, otherwise the browser
+# refuses to instantiate the module (streaming compile rejects octet-stream).
+<IfModule mod_mime.c>
+  AddType application/wasm .wasm
+  AddType application/javascript .mjs
+  AddType font/woff2 .woff2
+</IfModule>
+
+# --- Compression ------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE application/wasm
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# --- Caching ----------------------------------------------------------------
+# Astro emits content-hashed filenames under /_astro/, so they are immutable.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType application/wasm        "access plus 1 year"
+  ExpiresByType text/css                "access plus 1 year"
+  ExpiresByType application/javascript  "access plus 1 year"
+  ExpiresByType image/svg+xml           "access plus 1 month"
+  ExpiresByType text/html               "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(wasm|js|mjs|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+
+  # Baseline hardening. No inline scripts are emitted by Astro's build except
+  # the small island bootstrap, so 'unsafe-inline' stays out of script-src.
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+
+  # Cross-origin isolation is NOT enabled: it would break nothing here, but it
+  # also is not needed (no SharedArrayBuffer). Enable both COOP/COEP only if a
+  # future WASM feature requires it.
+</IfModule>
+
+# --- Routing / SPA-ish fallbacks -------------------------------------------
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Force HTTPS (cPanel often provisions a free AutoSSL cert).
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # Serve existing files/dirs as-is.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Astro trailing-slash routes: /foo/ -> /foo/index.html
+  RewriteCond %{REQUEST_FILENAME}/index.html -f
+  RewriteRule ^(.*)$ /$1/index.html [L]
+
+  # Everything else is a real 404 — do not mask broken links with index.html.
+  ErrorDocument 404 /404.html
+</IfModule>
+
+# --- Block dotfile leakage -------------------------------------------------
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+# --- Error pages ------------------------------------------------------------
+ErrorDocument 403 /404.html
+ErrorDocument 404 /404.html
