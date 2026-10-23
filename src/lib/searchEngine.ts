@@ -67,12 +67,24 @@ function rehydrate(projects: Project[], raw: unknown): ScoredProject[] {
   return out;
 }
 
+/**
+ * Vite resolves `import.meta.glob` at BUILD time: when `src/wasm-pkg/` exists
+ * (CI, after wasm-pack) the module is bundled and `portal_wasm_bg.wasm` is
+ * emitted into `_astro/`; when it does not exist (local dev, Zero-Local-Rust)
+ * the glob simply returns `{}` and nothing breaks.
+ *
+ * Do NOT switch this back to `import(specifier)` with `@vite-ignore` — that
+ * skipped bundling entirely, so production requested a URL that never existed
+ * and silently fell back to TypeScript forever.
+ */
+const wasmModules = import.meta.glob<WasmModule>('../wasm-pkg/portal_wasm.js');
+
 async function loadWasmEngine(): Promise<SearchEngineHandle | null> {
   try {
-    // Non-literal specifier: Vite leaves this as a runtime import instead of
-    // failing the build when the crate has not been compiled yet.
-    const specifier = WASM_ENTRY;
-    const mod = (await import(/* @vite-ignore */ specifier)) as WasmModule;
+    const load = wasmModules['../wasm-pkg/portal_wasm.js'];
+    if (!load) return null; // crate not compiled yet — expected locally
+
+    const mod = await load();
     const init = mod.default;
     const searchFn = mod.search_projects;
     if (typeof init !== 'function' || typeof searchFn !== 'function') return null;

@@ -47,10 +47,19 @@ jobs:
         with:
           workspaces: crates/portal-wasm -> target
 
+      # `jetli/wasm-pack-action` is unmaintained and fails on current Ubuntu
+      # runners with `EXDEV: cross-device link not permitted` while renaming
+      # from /tmp into $CARGO_HOME. Install the prebuilt binary ourselves with
+      # a plain copy — no rename across filesystems, no Node action layer.
       - name: Install wasm-pack
-        uses: jetli/wasm-pack-action@v0.4.0
-        with:
-          version: latest
+        run: |
+          set -euo pipefail
+          VERSION=v0.13.1
+          URL="https://github.com/rustwasm/wasm-pack/releases/download/${VERSION}/wasm-pack-${VERSION}-x86_64-unknown-linux-musl.tar.gz"
+          curl -sSfL "$URL" -o /tmp/wasm-pack.tar.gz
+          tar xzf /tmp/wasm-pack.tar.gz -C /tmp
+          install -m 0755 "/tmp/wasm-pack-${VERSION}-x86_64-unknown-linux-musl/wasm-pack" "$HOME/.cargo/bin/wasm-pack"
+          wasm-pack --version
 
       # Native tests first: they catch scoring regressions without needing the
       # wasm target, and they're fast (~seconds with a warm cache).
@@ -78,10 +87,25 @@ jobs:
       - name: Build static site
         run: npm run build
 
+      # Guards the exact bug that shipped before: the loader used a computed
+      # specifier with `@vite-ignore`, so Vite never bundled the crate and
+      # production silently fell back to TypeScript forever. If wasm-pack ran,
+      # a .wasm MUST exist in dist/ — otherwise fail loudly.
       - name: Verify WASM landed in dist
         run: |
-          test -f dist/_astro/*.wasm || test -f dist/*.wasm || (echo "WASM missing from dist!" && exit 1)
-          ls -lh dist/ | head -20
+          set -euo pipefail
+          echo "--- dist tree ---"
+          find dist -name '*.wasm' -o -name 'portal_wasm*.js' | sort
+          test -n "$(find dist -name '*.wasm' -print -quit)" || {
+            echo "::error::No .wasm in dist/ — the bundler skipped the crate."
+            echo "Check that searchEngine.ts still uses import.meta.glob."
+            exit 1
+          }
+          test -n "$(find dist -name 'portal_wasm*.js' -print -quit)" || {
+            echo "::error::No portal_wasm*.js glue module in dist/."
+            exit 1
+          }
+          du -sh dist/
 
       - name: Upload static artifact
         uses: actions/upload-artifact@v4
