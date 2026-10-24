@@ -29,7 +29,32 @@ Tambah satu object ke dalam array. Template:
   "features": ["Fitur pertama", "Fitur kedua"],
   "demo": null,
   "metrics": { "stars": 10, "requests": "1k/hari" }
-}
+},
+{
+    "id": "mini-shopify",
+    "title": "Mini-Shopify SaaS",
+    "pitch": "Multi-tenant storefront dengan checkout instan & dashboard penjual real-time.",
+    "description": "Platform e-commerce multi-tenant yang meniru inti Shopify: katalog produk, keranjang persisten, checkout, dan dashboard analitik penjual. Setiap tenant mendapat storefront terisolasi dengan tema sendiri, sementara backend Golang menangani konkurensi checkout dan Redis menyimpan session + cart.",
+    "url": "https://shopify.limun.web.id",
+    "repo": "https://github.com/LimunBF/mini-shopify",
+    "stack": ["React", "Golang", "Redis", "MySQL"],
+    "categories": ["fullstack", "saas"],
+    "status": "online",
+    "latency": 24,
+    "accent": "#00F0FF",
+    "size": "large",
+    "featured": true,
+    "year": 2025,
+    "architecture": ["React SPA", "Go Fiber API", "Redis Cache", "MySQL"],
+    "features": [
+      "Storefront multi-tenant dengan subdomain tema terpisah",
+      "Checkout dengan optimistic UI dan idempotency key",
+      "Dashboard penjual: revenue, AOV, dan produk terlaris",
+      "Webhook order yang tahan retry & replay"
+    ],
+    "demo": { "user": "demo@shopify.test", "pass": "demo1234" },
+    "metrics": { "stars": 128, "requests": "12.4k/hari" }
+  }
 ```
 
 ## Arti field
