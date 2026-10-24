@@ -23,5 +23,32 @@
     ],
     "demo": null,
     "metrics": { "stars": 0, "requests": "static" }
+  },
+  {
+    "id": "ai-token-vault",
+    "title": "AI Token Vault",
+    "pitch": "Brankas API key AI dengan enkripsi AES-256-GCM — plaintext tidak pernah menyentuh database.",
+    "description": "Vault pribadi untuk menyimpan API key dan token layanan AI (OpenAI, Anthropic, Midjourney, dan sejenisnya). Setiap token dienkripsi AES-256-GCM dengan IV unik 12 byte sebelum menyentuh database, dan hanya didekripsi saat pemiliknya menekan tombol tampilkan. Multi-user dengan alur registrasi yang harus disetujui admin, isolasi data per user_id di setiap query, soft delete untuk jejak audit, serta rate limit login dan registrasi per IP. Berjalan di atas Next.js App Router dengan MySQL/MariaDB lewat prepared statement — tanpa ORM dan tanpa layanan pihak ketiga, seluruh data tetap di server sendiri.",
+    "url": "https://vault.limun.web.id",
+    "repo": "https://github.com/LimunBF/AITokenVault",
+    "stack": ["Next.js", "React", "MySQL", "Tailwind", "Framer Motion"],
+    "categories": ["fullstack", "security", "tools"],
+    "status": "online",
+    "latency": 11,
+    "accent": "#10B981",
+    "size": "large",
+    "featured": true,
+    "year": 2026,
+    "architecture": ["Next.js App Router", "API Routes", "mysql2 Pool", "MySQL / MariaDB"],
+    "features": [
+      "Enkripsi AES-256-GCM dengan IV unik per token — ciphertext saja yang masuk database",
+      "Reveal on-demand: token hanya didekripsi saat tombol tampilkan ditekan",
+      "Multi-user dengan approval admin, status akun menentukan akses halaman",
+      "Isolasi data lewat filter user_id di setiap query; akses lintas user dibalas 404",
+      "Rate limit login 8x/15 menit dan registrasi 5x/jam per IP",
+      "44 cek audit keamanan: SQL injection, IDOR, CSRF, XSS, dan mass assignment"
+    ],
+    "demo": null,
+    "metrics": { "stars": 0, "requests": "44 cek keamanan lolos" }
   }
 ]
