@@ -30,7 +30,7 @@
     "pitch": "Portal launchpad tempat kamu sedang berdiri sekarang — statis, cepat, tanpa runtime.",
     "description": "Portal showcase ini sendiri. Astro menghasilkan HTML statis murni, Svelte 5 meng-hidrasi hanya komponen yang butuh interaksi, dan mesin pencarian fuzzy dijalankan sebagai modul Rust WebAssembly dengan fallback TypeScript agar tetap hidup di localhost tanpa toolchain Rust.",
     "url": "https://limun.web.id",
-    "repo": "https://github.com/LimunBF/devarcade",
+    "repo": "https://github.com/LimunBF/ShowcasePortal",
     "stack": ["Rust", "Astro", "Svelte 5", "Tailwind"],
     "categories": ["web", "meta"],
     "status": "online",
